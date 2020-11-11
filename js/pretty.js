@@ -151,6 +151,32 @@ var drawLegend = function(graphDim,margins)
     .append("g")
     .attr("class", function(aCategory){return aCategory.class;})
     .attr("transform", function(aCategory, index){return "translate(0," + index*20 + ")";})
+    .on("click", function(aCategory){
+        
+        console.log("A legend is clicked");
+        
+        //Create Boolean var to check if class is off
+        var off = ! d3.select(this)
+                      .classed("off")
+        
+        //When class is NOT off, dim
+        if (off)
+        {
+            d3.select(this)
+                .classed("off", true);
+            d3.selectAll("." + aCategory.class)
+                .classed("off", true);
+        }
+        //When class if off, remove off class
+        else
+        {
+           d3.select(this) 
+                .classed("off", false);
+           d3.selectAll("." + aCategory.class)
+                .classed("off", false);
+        }
+        
+    })
    
    //Add rectangle
    entries.append("rect")

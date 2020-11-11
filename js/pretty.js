@@ -57,12 +57,10 @@ var drawPlot = function(counties,target,
     })
 }
 
-
 var makeTranslateString = function(x,y)
 {
     return "translate("+x+","+y+")";
 }
-
 
 //graphDim is an object that describes the width and height of the graph area.
 //margins is an object that describes the space around the graph
@@ -70,7 +68,23 @@ var makeTranslateString = function(x,y)
 var drawAxes = function(graphDim,margins,
                          xScale,yScale)
 {
-   
+    //Define fnc to draw axes
+    var xAxis = d3.axisBottom(xScale)
+    var yAxis = d3.axisLeft(yScale);
+    
+    //Create group for axes
+    var axes = d3.select("svg")
+        .append("g")
+    
+    //Create x axis
+    axes.append("g")
+        .attr("transform", "translate(" + margins.left + "," + (margins.top + graphDim.height) + ")")
+        .call(xAxis)
+    
+    //Create y axis
+    axes.append("g")
+        .attr("transform", "translate(" + margins.left + "," + margins.top + ")")
+        .call(yAxis)
  
 }
 
@@ -79,14 +93,40 @@ var drawAxes = function(graphDim,margins,
 //margins - objedct that stores the size of the margins
 var drawLabels = function(graphDim,margins)
 {
+    //Create group for labels
+    var labels = d3.select("svg")
+        .append("g")
+        .classed("labels", true)
     
+    //Create title
+    labels.append("text")
+        .text("Trump Support")
+        .classed("title", true)
+        .attr("text-anchor", "middle")
+        .attr("x", margins.left + (graphDim.width/2))
+        .attr("y", margins.top)
+    
+    //Create x label
+    labels.append("text")
+        .text("Percentage White")
+        .classed("xLabel", true)
+        .attr("text-anchor", "middle")
+        .attr("x", margins.left + (graphDim.width/2))
+        .attr("y", margins.top + graphDim.height + 40)
+    
+    //Create y label
+    labels.append("g")
+        .attr("transform", "translate(20," + (margins.top + (graphDim.height/2)) + ")")
+        .append("text")
+        .text("Percentage Voting for Trump")
+        .classed("yLabel", true)
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(90)")
 }
 
 
 var drawLegend = function(graphDim,margins)
-{
-    
- 
+{ 
    var categories = [
        {
            class:"lessCollege",
@@ -97,11 +137,31 @@ var drawLegend = function(graphDim,margins)
            name:"High unemployment"
        }
     ]
-
-
+   
+   //Create group for legends
+   var legend = d3.select("svg")
+    .append("g")
+    .classed("legend", true)
+    .attr("transform", "translate(" + (margins.left+10) + "," + (margins.top+10) + ")")
+   
+   //Bind legends with each group for individual category
+   var entries = legend.selectAll("g")
+    .data(categories)
+    .enter()
+    .append("g")
+    .attr("class", function(aCategory){return aCategory.class;})
+    .attr("transform", function(aCategory, index){return "translate(0," + index*20 + ")";})
+   
+   //Add rectangle
+   entries.append("rect")
+    .attr("width", 10)
+    .attr("height", 10)
     
-    
-    
+   //Add name to legend
+   entries.append("text")
+    .text(function(aCategory){return aCategory.name})
+    .attr("x", 15)
+    .attr("y", 10)
 }
 
 //sets up several important variables and calls the functions for the visualization.
@@ -110,21 +170,23 @@ var initGraph = function(counties)
     //size of screen
     var screen = {width:800,height:600}
     //how much space on each side
-    var margins = {left:30,right:20,top:20,bottom:30}
+    var margins = {left:70,right:10,top:50,bottom:50}
     
-    
-    
-    var graph = 
+    //Set the graph size
+    var graphDim = 
         {
             width:screen.width-margins.left-margins.right,
             height:screen.height - margins.top-margins.bottom
         }
-    console.log(graph);
     
+    console.log(graphDim);
+    
+    //Apply screen size
     d3.select("svg")
     .attr("width",screen.width)
     .attr("height",screen.height)
     
+    //Create group for graph
     var target = d3.select("svg")
     .append("g")
     .attr("id","#graph")
@@ -132,24 +194,20 @@ var initGraph = function(counties)
           "translate("+margins.left+","+
                         margins.top+")");
     
-    
+    //Define fnc to scale x
     var xScale = d3.scaleLinear()
         .domain([0,100])
-        .range([0,graph.width])
-
+        .range([0,graphDim.width])
+    
+    //Define fnc to scale y
     var yScale = d3.scaleLinear()
         .domain([0,1])
-        .range([graph.height,0])
+        .range([graphDim.height,0])
     
-    drawAxes(graph,margins,xScale,yScale);
+    drawAxes(graphDim,margins,xScale,yScale);
     drawPlot(counties,target,xScale,yScale);
-    drawLabels(graph,margins);
-    drawLegend(graph,margins);
-    
-    
-    
-    
-    
+    drawLabels(graphDim,margins);
+    drawLegend(graphDim,margins);   
 }
 
 
